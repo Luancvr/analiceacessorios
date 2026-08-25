@@ -144,7 +144,7 @@ body {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     position: relative;
-    max-width: 280px;
+    min-width: 360px;
 }
 
 .product-card:hover {
