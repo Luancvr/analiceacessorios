@@ -81,7 +81,7 @@ async function loadProducts() {
   try {
     setMessage('Carregando produtos...', 'info');
 
-    const data = await api('list');
+    const data = await ('list');
     products = data.products || [];
 
     renderProducts();
@@ -233,7 +233,7 @@ async function analyzeCurrentImage() {
         .filter(Boolean)
     )];
 
-    const data = await api('analyzeImage', {
+    const data = await ('analyzeImage', {
       imageData: pendingImageData,
       imageMime: 'image/jpeg',
       categories: JSON.stringify(categories)
@@ -346,7 +346,7 @@ async function saveProduct(event) {
       payload.imageMime = 'image/jpeg';
     }
 
-    await api(id ? 'update' : 'create', payload);
+    await (id ? 'update' : 'create', payload);
 
     closeProductModal();
     await loadProducts();
