@@ -282,7 +282,7 @@ body {
     }
 
     .product-card {
-        max-width: 360px;
+        min-width: 360px;
         margin: 0 auto;
     }
     
