@@ -174,7 +174,7 @@ function displayProducts(products, resetCart = false) {
     }
 
     products.forEach((product, index) => {
-        const productCard = eProductCard(product, index);
+        const productCard = createProductCard(product, index);
         grid.appendChild(productCard);
     });
 
