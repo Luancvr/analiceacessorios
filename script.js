@@ -14,7 +14,7 @@ const CATEGORY_FILTERS = [
     { label: 'Colares', category: 'Colares' },
     { label: 'Relógios', category: 'Relógios' },
     { label: 'Brincos', category: 'Brincos' },
-    { label: 'Pulseiras', category: 'Pulseiras' }
+    { label: 'Pulseiras', category: 'Pulseiras' },
     { label: 'Anéis', category: 'Anéis' }
 ];
 
