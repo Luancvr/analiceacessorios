@@ -2,18 +2,20 @@
 // CONFIGURAÇÃO
 // ============================================================
 
-// Substitua as URLs abaixo pelas URLs das suas planilhas publicadas como CSV.
-// Você pode usar cada planilha como uma categoria do catálogo.
-const SHEET_URLS = {
-    0: 'https://docs.google.com/spreadsheets/d/1QIgG7oeHhyIrdlzWAb5jv3Ru_305UJ0xoZniGgQGP9M/export?format=csv&gid=0',
-    1: 'https://docs.google.com/spreadsheets/d/11XASCJd_fl6B-FPAYND83Xf8wfreLvsCcogHo9Oy5k4/export?format=csv&gid=0'
-};
+// O catálogo inteiro usa UMA ÚNICA planilha publicada como CSV.
+// Os botões abaixo apenas filtram os produtos pela coluna "Categoria".
+const CATALOG_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1QIgG7oeHhyIrdlzWAb5jv3Ru_305UJ0xoZniGgQGP9M/export?format=csv&gid=0';
 
-// Nome exibido nos botões das categorias/planilhas.
-const SHEET_NAMES = {
-    0: 'Acessórios',
-    1: 'Relógios'
-};
+// Categorias exibidas como botões.
+// O valor de "category" deve corresponder ao valor da coluna Categoria.
+// A comparação ignora maiúsculas/minúsculas e acentos.
+const CATEGORY_FILTERS = [
+    { label: 'Todos', category: '' },
+    { label: 'Colares', category: 'Colares' },
+    { label: 'Relógios', category: 'Relógios' },
+    { label: 'Brincos', category: 'Brincos' },
+    { label: 'Pulseiras', category: 'Pulseiras' }
+];
 
 // IMPORTANTE: coloque aqui o WhatsApp da loja.
 // Formato: código do país + DDD + número, somente números.
@@ -23,8 +25,9 @@ const WHATSAPP_NUMBER = '5573998055154';
 // Texto inicial da mensagem enviada ao WhatsApp.
 const WHATSAPP_INTRO = 'Olá! Gostaria de fazer um pedido com os seguintes produtos:';
 
-let currentSheetId = 0;
 let selectedProducts = [];
+let allProducts = [];
+let currentCategory = '';
 
 // ============================================================
 // DADOS DE EXEMPLO
@@ -62,16 +65,15 @@ function getExampleProducts() {
 // GOOGLE SHEETS
 // ============================================================
 
-async function fetchProductsData(sheetId = currentSheetId) {
+async function fetchProductsData() {
     try {
         showLoading(true);
 
         let products = [];
-        const sheetUrl = SHEET_URLS[sheetId];
 
         try {
-            if (sheetUrl && !sheetUrl.includes('SEU_ID_DA_PLANILHA')) {
-                const response = await fetch(sheetUrl);
+            if (CATALOG_SHEET_URL && !CATALOG_SHEET_URL.includes('SEU_ID_DA_PLANILHA')) {
+                const response = await fetch(CATALOG_SHEET_URL);
                 if (!response.ok) throw new Error('Planilha não encontrada');
 
                 const csvText = await response.text();
@@ -88,13 +90,40 @@ async function fetchProductsData(sheetId = currentSheetId) {
             throw new Error('Nenhum produto encontrado');
         }
 
-        displayProducts(products);
+        allProducts = products;
+        applyCategoryFilter();
         showLoading(false);
     } catch (error) {
         console.error('Erro ao carregar produtos:', error);
         showError();
         showLoading(false);
     }
+}
+
+function normalizeCategory(value) {
+    return String(value || '')
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+}
+
+function applyCategoryFilter() {
+    const filteredProducts = currentCategory
+        ? allProducts.filter(product => {
+            const productCategory = getProductValue(
+                product,
+                'Categoria',
+                'categoria',
+                'CATEGORIA',
+                'Tipo',
+                'tipo'
+            );
+            return normalizeCategory(productCategory) === normalizeCategory(currentCategory);
+        })
+        : allProducts;
+
+    displayProducts(filteredProducts, false);
 }
 
 function parseCSV(csvText) {
@@ -150,18 +179,35 @@ function parseCSVLine(line) {
 // PRODUTOS / CARDS
 // ============================================================
 
-function displayProducts(products) {
+function displayProducts(products, resetCart = false) {
     const grid = document.getElementById('products-grid');
     grid.innerHTML = '';
 
-    // O carrinho é limpo ao trocar de categoria/planilha.
-    selectedProducts = [];
-    updateCartUI();
+    // Trocar de categoria não apaga o carrinho.
+    if (resetCart) {
+        selectedProducts = [];
+    }
 
     products.forEach((product, index) => {
         const productCard = createProductCard(product, index);
         grid.appendChild(productCard);
     });
+
+    // Reaplica visualmente as quantidades que já estão no carrinho.
+    products.forEach(product => {
+        const productName = getProductValue(
+            product,
+            'Nome',
+            'nome',
+            'Produto',
+            'produto'
+        ) || 'Produto sem nome';
+
+        updateVisibleCardsForProduct(productName);
+    });
+
+    updateCartUI();
+    updateCartModal();
 }
 
 function getProductValue(product, ...keys) {
@@ -652,34 +698,40 @@ function showError() {
 }
 
 // ============================================================
-// CATEGORIAS / PLANILHAS
+// FILTROS POR CATEGORIA — MESMA PLANILHA
 // ============================================================
 
-function switchSheet(sheetId) {
-    currentSheetId = sheetId;
+function selectCategory(category, button) {
+    currentCategory = category || '';
 
     document.querySelectorAll('.sheet-selection .btn').forEach(btn => {
         btn.classList.remove('active');
     });
 
-    const activeButton = document.querySelector(`[data-sheet-id="${sheetId}"]`);
-    if (activeButton) activeButton.classList.add('active');
+    if (button) {
+        button.classList.add('active');
+    }
 
-    fetchProductsData(sheetId);
+    applyCategoryFilter();
 }
 
-function initializeSheetButtons() {
+function initializeCategoryButtons() {
     const container = document.getElementById('sheet-selection');
+    if (!container) return;
 
-    Object.keys(SHEET_URLS).forEach(key => {
-        const sheetId = Number(key);
+    container.innerHTML = '';
+
+    CATEGORY_FILTERS.forEach(filter => {
         const button = document.createElement('button');
         button.className = 'btn';
         button.type = 'button';
-        button.dataset.sheetId = sheetId;
-        button.textContent = SHEET_NAMES[sheetId] || `Categoria ${sheetId + 1}`;
+        button.textContent = filter.label;
+        button.dataset.category = filter.category;
 
-        button.addEventListener('click', () => switchSheet(sheetId));
+        button.addEventListener('click', () => {
+            selectCategory(filter.category, button);
+        });
+
         container.appendChild(button);
     });
 
@@ -788,7 +840,7 @@ function initializeLightbox() {
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    initializeSheetButtons();
+    initializeCategoryButtons();
     fetchProductsData();
     initializeLightbox();
 
