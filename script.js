@@ -174,7 +174,7 @@ function displayProducts(products, resetCart = false) {
     }
 
     products.forEach((product, index) => {
-        const productCard = createProductCard(product, index);
+        const productCard = eProductCard(product, index);
         grid.appendChild(productCard);
     });
 
@@ -294,14 +294,120 @@ function createProductCard(product, index) {
     card.className = 'product-card';
     card.style.animationDelay = `${index * 0.1}s`;
 
-    const name = getProductValue(product, 'Nome', 'nome', 'Produto', 'produto') || 'Produto sem nome';
-    const image = getProductValue(product, 'Imagem', 'imagem', 'Foto', 'foto') || 'https://via.placeholder.com/600x500?text=Sem+Imagem';
-    const description = getProductValue(product, 'Descricao', 'Descrição', 'descricao', 'descrição', 'Detalhes', 'detalhes') || 'Descrição não disponível';
-    const priceRaw = getProductValue(product, 'Preco', 'Preço', 'preco', 'preço');
-    const installments = getProductValue(product, 'Parcelas', 'parcelas');
-    const category = getProductValue(product, 'Categoria', 'categoria', 'Tipo', 'tipo');
-    const details = getProductValue(product, 'Detalhes', 'detalhes', 'Cor', 'cor', 'Material', 'material');
+    const name = getProductValue(
+        product,
+        'Nome',
+        'nome',
+        'Produto',
+        'produto'
+    ) || 'Produto sem nome';
+
+    const description = getProductValue(
+        product,
+        'Descricao',
+        'Descrição',
+        'descricao',
+        'descrição',
+        'Detalhes',
+        'detalhes'
+    ) || 'Descrição não disponível';
+
+    const priceRaw = getProductValue(
+        product,
+        'Preco',
+        'Preço',
+        'preco',
+        'preço'
+    );
+
+    const installments = getProductValue(
+        product,
+        'Parcelas',
+        'parcelas'
+    );
+
+    const category = getProductValue(
+        product,
+        'Categoria',
+        'categoria',
+        'Tipo',
+        'tipo'
+    );
+
+    const details = getProductValue(
+        product,
+        'Detalhes',
+        'detalhes',
+        'Cor',
+        'cor',
+        'Material',
+        'material'
+    );
+
     const availability = getProductAvailability(product);
+
+    // ============================================================
+    // IMAGEM
+    // ============================================================
+
+    const imageId = getProductValue(
+        product,
+        'ImagemID',
+        'imagemid',
+        'ImagemId',
+        'imagemId'
+    );
+
+    let image = getProductValue(
+        product,
+        'Imagem',
+        'imagem',
+        'Foto',
+        'foto'
+    );
+
+    // Se existir ImagemID, usa diretamente o thumbnail do Google Drive.
+    if (imageId) {
+        image = `https://drive.google.com/thumbnail?id=${encodeURIComponent(imageId)}&sz=w1200`;
+    }
+
+    // Compatibilidade com links antigos do Google Drive.
+    // Converte automaticamente:
+    // https://drive.google.com/uc?export=view&id=XXXXXXXX
+    // para:
+    // https://drive.google.com/thumbnail?id=XXXXXXXX&sz=w1200
+    if (image && image.includes('drive.google.com')) {
+        const idMatch = image.match(/[?&]id=([^&]+)/);
+
+        if (idMatch && idMatch[1]) {
+            image = `https://drive.google.com/thumbnail?id=${encodeURIComponent(idMatch[1])}&sz=w1200`;
+        }
+    }
+
+    // Placeholder interno, sem depender de via.placeholder.com
+    const imageFallback =
+        'data:image/svg+xml;charset=UTF-8,' +
+        encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="600"
+                 height="500"
+                 viewBox="0 0 600 500">
+                <rect width="600" height="500" fill="#f3e7de"/>
+                <text x="300"
+                      y="245"
+                      text-anchor="middle"
+                      font-family="Arial, sans-serif"
+                      font-size="24"
+                      fill="#9a8174">
+                    Sem imagem
+                </text>
+            </svg>
+        `);
+
+    // Se não houver imagem alguma, já começa com o fallback.
+    if (!image) {
+        image = imageFallback;
+    }
 
     const productData = {
         ...product,
@@ -316,42 +422,135 @@ function createProductCard(product, index) {
     };
 
     card.dataset.productName = name;
-    card.classList.toggle('unavailable', !availability.available);
+    card.classList.toggle(
+        'unavailable',
+        !availability.available
+    );
 
     card.innerHTML = `
         <div class="product-image-container">
-            <img src="${escapeAttribute(image)}"
-                 alt="${escapeAttribute(name)}"
-                 class="product-image"
-                 onerror="this.src='https://via.placeholder.com/600x500?text=Sem+Imagem'">
-            ${category ? `<span class="category-badge">${escapeHtml(category)}</span>` : ''}
-            <span class="availability-badge ${availability.available ? 'is-available' : 'is-unavailable'}">
-                <i class="fas ${availability.available ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+            <img
+                src="${escapeAttribute(image)}"
+                alt="${escapeAttribute(name)}"
+                class="product-image"
+                onerror="this.onerror=null; this.src='${imageFallback}'"
+            >
+
+            ${
+                category
+                    ? `<span class="category-badge">${escapeHtml(category)}</span>`
+                    : ''
+            }
+
+            <span class="availability-badge ${
+                availability.available
+                    ? 'is-available'
+                    : 'is-unavailable'
+            }">
+                <i class="fas ${
+                    availability.available
+                        ? 'fa-circle-check'
+                        : 'fa-circle-xmark'
+                }"></i>
                 ${escapeHtml(availability.label)}
             </span>
         </div>
 
         <div class="product-info">
-            <h3 class="product-name">${escapeHtml(name)}</h3>
-            <p class="product-description">${escapeHtml(description)}</p>
 
-            ${details ? `<div class="product-detail"><i class="fas fa-sparkles"></i><span>${escapeHtml(details)}</span></div>` : ''}
+            <h3 class="product-name">
+                ${escapeHtml(name)}
+            </h3>
+
+            <p class="product-description">
+                ${escapeHtml(description)}
+            </p>
+
+            ${
+                details
+                    ? `
+                        <div class="product-detail">
+                            <i class="fas fa-sparkles"></i>
+                            <span>${escapeHtml(details)}</span>
+                        </div>
+                    `
+                    : ''
+            }
 
             <div class="product-price">
-                ${priceRaw ? `<div class="price-main">${escapeHtml(formatPrice(priceRaw))}</div>` : ''}
-                ${installments ? `<div class="price-installments"><i class="fas fa-credit-card"></i> ${escapeHtml(installments)}</div>` : ''}
+                ${
+                    priceRaw
+                        ? `
+                            <div class="price-main">
+                                ${escapeHtml(formatPrice(priceRaw))}
+                            </div>
+                        `
+                        : ''
+                }
+
+                ${
+                    installments
+                        ? `
+                            <div class="price-installments">
+                                <i class="fas fa-credit-card"></i>
+                                ${escapeHtml(installments)}
+                            </div>
+                        `
+                        : ''
+                }
             </div>
 
-            <div class="cart-controls ${availability.available ? '' : 'is-disabled'}" aria-label="Quantidade de ${escapeHtml(name)}">
-                <button class="qty-button qty-minus" type="button" aria-label="Diminuir quantidade" ${availability.available ? '' : 'disabled'}>−</button>
-                <span class="qty-value">${availability.available ? '0' : '—'}</span>
-                <button class="qty-button qty-plus" type="button" aria-label="Aumentar quantidade" ${availability.available ? '' : 'disabled'}>+</button>
+            <div
+                class="cart-controls ${
+                    availability.available ? '' : 'is-disabled'
+                }"
+                aria-label="Quantidade de ${escapeHtml(name)}"
+            >
+                <button
+                    class="qty-button qty-minus"
+                    type="button"
+                    aria-label="Diminuir quantidade"
+                    ${availability.available ? '' : 'disabled'}
+                >
+                    −
+                </button>
+
+                <span class="qty-value">
+                    ${availability.available ? '0' : '—'}
+                </span>
+
+                <button
+                    class="qty-button qty-plus"
+                    type="button"
+                    aria-label="Aumentar quantidade"
+                    ${availability.available ? '' : 'disabled'}
+                >
+                    +
+                </button>
             </div>
 
-            <div class="select-product-label ${availability.available ? '' : 'is-unavailable-label'}">
-                <i class="fas ${availability.available ? 'fa-cart-plus' : 'fa-circle-xmark'}"></i>
-                <span>${availability.available ? 'Adicionar ao carrinho' : 'Produto indisponível'}</span>
+            <div
+                class="select-product-label ${
+                    availability.available
+                        ? ''
+                        : 'is-unavailable-label'
+                }"
+            >
+                <i class="fas ${
+                    availability.available
+                        ? 'fa-cart-plus'
+                        : 'fa-circle-xmark'
+                }"></i>
+
+                <span>
+                    ${
+                        availability.available
+                            ? 'Adicionar ao carrinho'
+                            : 'Produto indisponível'
+                    }
+                </span>
             </div>
+
         </div>
     `;
 
@@ -360,31 +559,51 @@ function createProductCard(product, index) {
 
     minusButton.addEventListener('click', (event) => {
         event.stopPropagation();
-        changeProductQuantity(productData, -1, card);
+        changeProductQuantity(
+            productData,
+            -1,
+            card
+        );
     });
 
     plusButton.addEventListener('click', (event) => {
         event.stopPropagation();
-        changeProductQuantity(productData, 1, card);
+        changeProductQuantity(
+            productData,
+            1,
+            card
+        );
     });
 
-    // Clique na imagem abre o lightbox. Clique no restante adiciona 1 unidade.
+    // Clique na imagem abre o lightbox.
+    // Clique no restante do card adiciona 1 unidade.
     card.addEventListener('click', (event) => {
-        if (event.target.closest('.qty-button')) return;
 
-        if (event.target.closest('.product-image')) {
-            openLightbox(image, name);
+        if (event.target.closest('.qty-button')) {
             return;
         }
 
-        if (!availability.available) return;
+        if (event.target.closest('.product-image')) {
+            openLightbox(
+                image,
+                name
+            );
+            return;
+        }
 
-        changeProductQuantity(productData, 1, card);
+        if (!availability.available) {
+            return;
+        }
+
+        changeProductQuantity(
+            productData,
+            1,
+            card
+        );
     });
 
     return card;
 }
-
 function findCartItem(productName) {
     return selectedProducts.find(item => item.product._name === productName);
 }
