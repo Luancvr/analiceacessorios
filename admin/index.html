@@ -87,13 +87,13 @@
           <div class="photo-actions">
             <label class="photo-button">
               📷 Tirar ou escolher foto
-             <input
-    id="product-image"
-    type="file"
-    accept="image/*"
->
+              <input id="product-image" type="file" accept="image/*">
             </label>
-            <small>O celular poderá abrir diretamente a câmera.</small>
+            <button id="analyze-image-button" class="ai-button" type="button" disabled>
+              ✨ Preencher com IA
+            </button>
+            <small>Escolha uma foto da biblioteca ou tire uma nova. A IA preencherá os dados automaticamente.</small>
+            <div id="ai-status" class="ai-status" aria-live="polite"></div>
           </div>
         </div>
 
@@ -102,7 +102,7 @@
             <input id="product-name" type="text" required>
           </label>
 
-          <label>Valor *
+          <label>Valor * <span class="manual-field-note">preencha manualmente</span>
             <input id="product-price" type="text" inputmode="decimal" placeholder="R$ 89,90" required>
           </label>
 

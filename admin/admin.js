@@ -1,10 +1,16 @@
-
+// ============================================================
+// CONFIGURAÇÃO DO PAINEL
+// ============================================================
+// Cole aqui a URL do Google Apps Script Web App.
+// Exemplo:
+// https://script.google.com/macros/s/XXXXXXXXXXXX/exec
 const API_URL = 'https://script.google.com/macros/s/AKfycbygoY0cZ2XTc3eMw3NahYbJw0nZqKMR_dTBUo_h3xSUgOxOc2KGxK0Iwy9fWhNlsNm3/exec';
 
 let adminPassword = '';
 let products = [];
 let pendingImageFile = null;
 let pendingImageData = null;
+let aiAnalyzing = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -14,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('refresh-button').addEventListener('click', loadProducts);
   $('product-form').addEventListener('submit', saveProduct);
   $('product-image').addEventListener('change', handleImageChange);
+  $('analyze-image-button').addEventListener('click', analyzeCurrentImage);
   $('modal-close').addEventListener('click', closeProductModal);
   $('cancel-button').addEventListener('click', closeProductModal);
   $('delete-product-button').addEventListener('click', deleteCurrentProduct);
@@ -142,6 +149,13 @@ function openProductModal(product = null) {
   $('delete-product-button').classList.add('hidden');
   pendingImageFile = null;
   pendingImageData = null;
+  aiAnalyzing = false;
+  setAIStatus('', '');
+
+  const analyzeButton = $('analyze-image-button');
+  if (analyzeButton) {
+    analyzeButton.disabled = true;
+  }
 
   if (product) {
     $('modal-title').textContent = 'Editar produto';
@@ -176,11 +190,108 @@ async function handleImageChange(event) {
   const file = event.target.files?.[0];
   if (!file) return;
 
-  pendingImageFile = file;
-  pendingImageData = await resizeImage(file);
+  if (!file.type.startsWith('image/')) {
+    setAIStatus('Selecione uma imagem válida.', 'error');
+    return;
+  }
 
-  $('photo-preview').innerHTML = `<img src="${pendingImageData}" alt="Prévia">`;
+  pendingImageFile = file;
+  setAIStatus('Preparando imagem...', 'loading');
+
+  try {
+    pendingImageData = await resizeImage(file);
+
+    $('photo-preview').innerHTML =
+      `<img src="${pendingImageData}" alt="Prévia">`;
+
+    const analyzeButton = $('analyze-image-button');
+    analyzeButton.disabled = false;
+
+    // Executa automaticamente ao adicionar uma foto.
+    await analyzeCurrentImage();
+  } catch (error) {
+    console.error(error);
+    setAIStatus('Não foi possível preparar a imagem.', 'error');
+  }
 }
+
+async function analyzeCurrentImage() {
+  if (!pendingImageData || aiAnalyzing) return;
+
+  aiAnalyzing = true;
+
+  const button = $('analyze-image-button');
+  button.disabled = true;
+  button.textContent = '✨ Analisando...';
+
+  setAIStatus('A IA está analisando o produto...', 'loading');
+
+  try {
+    const categories = [...new Set(
+      products
+        .map(product => String(product.Categoria || '').trim())
+        .filter(Boolean)
+    )];
+
+    const data = await api('analyzeImage', {
+      imageData: pendingImageData,
+      imageMime: 'image/jpeg',
+      categories: JSON.stringify(categories)
+    });
+
+    const suggestion = data.suggestion || {};
+
+    if (suggestion.nome) {
+      $('product-name').value = suggestion.nome;
+    }
+
+    if (suggestion.descricao) {
+      $('product-description').value = suggestion.descricao;
+    }
+
+    if (suggestion.categoria) {
+      $('product-category').value = suggestion.categoria;
+    }
+
+    // Disponibilidade não pode ser inferida com segurança da foto.
+    // Em produto novo, deixamos como Disponível; ao editar, preservamos
+    // o status que já estava cadastrado.
+    const productId = $('product-id').value.trim();
+
+    if (!productId) {
+      $('product-availability').value = 'Disponível';
+    }
+
+    const confidence = Number(suggestion.confianca_categoria);
+    const confidenceText = Number.isFinite(confidence)
+      ? ` Confiança da categoria: ${Math.round(confidence * 100)}%.`
+      : '';
+
+    setAIStatus(
+      `Dados preenchidos. Revise antes de salvar.${confidenceText}`,
+      'success'
+    );
+  } catch (error) {
+    console.error('Erro na análise de IA:', error);
+    setAIStatus(
+      error.message || 'Não foi possível analisar a imagem.',
+      'error'
+    );
+  } finally {
+    aiAnalyzing = false;
+    button.disabled = !pendingImageData;
+    button.textContent = '✨ Preencher com IA';
+  }
+}
+
+function setAIStatus(text, type = '') {
+  const el = $('ai-status');
+  if (!el) return;
+
+  el.textContent = text;
+  el.className = `ai-status ${type}`.trim();
+}
+
 
 async function resizeImage(file) {
   const dataUrl = await fileToDataURL(file);
@@ -291,6 +402,10 @@ function duplicateProduct(id) {
 function toggleForm(disabled) {
   document.querySelectorAll('#product-form input, #product-form textarea, #product-form select, #product-form button')
     .forEach(element => element.disabled = disabled);
+
+  if (!disabled && !pendingImageData) {
+    $('analyze-image-button').disabled = true;
+  }
 }
 
 function setMessage(text, type = '') {
