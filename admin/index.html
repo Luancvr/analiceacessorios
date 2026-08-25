@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#6f5146">
+  <title>Analice Acessórios — Administração</title>
+  <link rel="stylesheet" href="admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600;6..96,700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script defer src="admin.js"></script>
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-header">
+      <div>
+        <span class="eyebrow">ANALICE ACESSÓRIOS</span>
+        <h1>Gerenciar catálogo</h1>
+        <p>Cadastre, edite e controle os produtos do catálogo.</p>
+      </div>
+      <a class="back-link" href="/">Voltar ao catálogo</a>
+    </header>
+
+    <section id="login-panel" class="panel auth-panel">
+      <div class="panel-heading">
+        <span class="eyebrow">ACESSO RESTRITO</span>
+        <h2>Entrar</h2>
+      </div>
+      <form id="login-form">
+        <label>Senha administrativa
+          <input id="admin-password" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="primary-button" type="submit">Entrar</button>
+        <p id="login-message" class="message"></p>
+      </form>
+    </section>
+
+    <section id="admin-app" class="hidden">
+      <div class="toolbar">
+        <div>
+          <span class="eyebrow">CATÁLOGO</span>
+          <h2>Produtos</h2>
+        </div>
+        <div class="toolbar-actions">
+          <button id="new-product-button" class="primary-button">+ Novo produto</button>
+          <button id="refresh-button" class="secondary-button">Atualizar</button>
+        </div>
+      </div>
+
+      <div id="message" class="message global-message"></div>
+
+      <section class="panel">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Disponibilidade</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="products-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="product-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="eyebrow">CATÁLOGO</span>
+          <h2 id="modal-title">Novo produto</h2>
+        </div>
+        <button id="modal-close" class="icon-button" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <form id="product-form" class="product-form">
+        <input id="product-id" type="hidden">
+
+        <div class="photo-area">
+          <div id="photo-preview" class="photo-preview">
+            <span>Sem foto</span>
+          </div>
+          <div class="photo-actions">
+            <label class="photo-button">
+              📷 Tirar foto / escolher imagem
+              <input id="product-image" type="file" accept="image/*" capture="environment">
+            </label>
+            <small>O celular poderá abrir diretamente a câmera.</small>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label>Nome do produto *
+            <input id="product-name" type="text" required>
+          </label>
+
+          <label>Valor *
+            <input id="product-price" type="text" inputmode="decimal" placeholder="R$ 89,90" required>
+          </label>
+
+          <label class="full">Descrição
+            <textarea id="product-description" rows="3"></textarea>
+          </label>
+
+          <label>Categoria *
+            <input id="product-category" list="category-options" type="text" placeholder="Ex.: Colares" required>
+            <datalist id="category-options"></datalist>
+          </label>
+
+          <label>Disponibilidade *
+            <select id="product-availability" required>
+              <option value="Disponível">Disponível</option>
+              <option value="Fora de estoque">Fora de estoque</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button id="delete-product-button" class="danger-button hidden" type="button">Excluir</button>
+          <div class="footer-right">
+            <button id="cancel-button" class="secondary-button" type="button">Cancelar</button>
+            <button id="save-button" class="primary-button" type="submit">Salvar produto</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

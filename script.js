@@ -2,21 +2,11 @@
 // CONFIGURAÇÃO
 // ============================================================
 
-// O catálogo inteiro usa UMA ÚNICA planilha publicada como CSV.
-// Os botões abaixo apenas filtram os produtos pela coluna "Categoria".
+// O catálogo usa UMA ÚNICA planilha publicada como CSV.
+// As categorias são filtradas localmente pela coluna "Categoria".
 const CATALOG_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1QIgG7oeHhyIrdlzWAb5jv3Ru_305UJ0xoZniGgQGP9M/export?format=csv&gid=0';
 
-// Categorias exibidas como botões.
-// O valor de "category" deve corresponder ao valor da coluna Categoria.
-// A comparação ignora maiúsculas/minúsculas e acentos.
-const CATEGORY_FILTERS = [
-    { label: 'Todos', category: '' },
-    { label: 'Colares', category: 'Colares' },
-    { label: 'Relógios', category: 'Relógios' },
-    { label: 'Brincos', category: 'Brincos' },
-    { label: 'Pulseiras', category: 'Pulseiras' },
-    { label: 'Anéis', category: 'Anéis' }
-];
+const CATEGORY_ALL_LABEL = 'Todos';
 
 // IMPORTANTE: coloque aqui o WhatsApp da loja.
 // Formato: código do país + DDD + número, somente números.
@@ -73,15 +63,11 @@ async function fetchProductsData() {
         let products = [];
 
         try {
-            if (CATALOG_SHEET_URL && !CATALOG_SHEET_URL.includes('SEU_ID_DA_PLANILHA')) {
-                const response = await fetch(CATALOG_SHEET_URL);
-                if (!response.ok) throw new Error('Planilha não encontrada');
+            const response = await fetch(CATALOG_SHEET_URL);
+            if (!response.ok) throw new Error('Planilha não encontrada');
 
-                const csvText = await response.text();
-                products = parseCSV(csvText);
-            } else {
-                throw new Error('URL da planilha não configurada');
-            }
+            const csvText = await response.text();
+            products = parseCSV(csvText);
         } catch (error) {
             console.log('Usando dados de exemplo...', error);
             products = getExampleProducts();
@@ -92,6 +78,7 @@ async function fetchProductsData() {
         }
 
         allProducts = products;
+        initializeCategoryButtons();
         applyCategoryFilter();
         showLoading(false);
     } catch (error) {
@@ -116,9 +103,7 @@ function applyCategoryFilter() {
                 product,
                 'Categoria',
                 'categoria',
-                'CATEGORIA',
-                'Tipo',
-                'tipo'
+                'CATEGORIA'
             );
             return normalizeCategory(productCategory) === normalizeCategory(currentCategory);
         })
@@ -184,7 +169,6 @@ function displayProducts(products, resetCart = false) {
     const grid = document.getElementById('products-grid');
     grid.innerHTML = '';
 
-    // Trocar de categoria não apaga o carrinho.
     if (resetCart) {
         selectedProducts = [];
     }
@@ -194,7 +178,6 @@ function displayProducts(products, resetCart = false) {
         grid.appendChild(productCard);
     });
 
-    // Reaplica visualmente as quantidades que já estão no carrinho.
     products.forEach(product => {
         const productName = getProductValue(
             product,
@@ -709,9 +692,7 @@ function selectCategory(category, button) {
         btn.classList.remove('active');
     });
 
-    if (button) {
-        button.classList.add('active');
-    }
+    if (button) button.classList.add('active');
 
     applyCategoryFilter();
 }
@@ -722,7 +703,19 @@ function initializeCategoryButtons() {
 
     container.innerHTML = '';
 
-    CATEGORY_FILTERS.forEach(filter => {
+    const categories = Array.from(new Set(
+        allProducts
+            .map(product => getProductValue(product, 'Categoria', 'categoria', 'CATEGORIA'))
+            .map(value => String(value || '').trim())
+            .filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    const filters = [
+        { label: CATEGORY_ALL_LABEL, category: '' },
+        ...categories.map(category => ({ label: category, category }))
+    ];
+
+    filters.forEach(filter => {
         const button = document.createElement('button');
         button.className = 'btn';
         button.type = 'button';
@@ -736,10 +729,11 @@ function initializeCategoryButtons() {
         container.appendChild(button);
     });
 
-    const firstButton = container.querySelector('.btn');
-    if (firstButton) {
-        firstButton.classList.add('active');
-    }
+    const activeButton = Array.from(container.querySelectorAll('.btn')).find(
+        btn => normalizeCategory(btn.dataset.category) === normalizeCategory(currentCategory)
+    );
+
+    (activeButton || container.querySelector('.btn'))?.classList.add('active');
 }
 
 function reloadProducts() {
@@ -841,7 +835,6 @@ function initializeLightbox() {
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    initializeCategoryButtons();
     fetchProductsData();
     initializeLightbox();
 
