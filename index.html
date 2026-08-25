@@ -3,35 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de Celulares</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📱</text></svg>">
+    <title>Catálogo de Acessórios</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✦</text></svg>">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600;6..96,700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&family=Pinyon+Script&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
-            <img src="https://lh3.googleusercontent.com/pw/AP1GczOi7W5UdDRRcTwiwY-yO74iJCKU5QSrE7BcPzTwMfYNWwklJqpdMop-hc0zKd4A21TuOz8jFXTmInQPwT-O-mdd169gBNmtp7ehvX7xHsVqwz9t9-_1ig5L4yEe6OO4Q1X95dVTQm6Sh0jxbcC2Q8K9nA=w1408-h768-s-no-gm?authuser=0" alt="Catálogo de Celulares" class="header-logo">
-            <p class="subtitle">Encontre o smartphone perfeito para você</p>
-            <div class="sheet-selection">
-                <button class="btn active" data-sheet-id="0">iPhones</button>
-                <button class="btn" data-sheet-id="1">Androids</button>
+            <img src="https://lh3.googleusercontent.com/pw/AP1GczPobLKJ_lWpn9WLBrJlgYiWHHsNdSiVExBEMt8Y5idbxlLm_uz9Qqn7jdveZ9rtbaPwOIeTnB1GMkH6MSh8sqnZL2rdF7lFkROwTM051BzxdewKqh0hHIvBq5CklEgdaCUHoOSkU-RW2PDanjSwJXgz3A=w1088-h937-s-no-gm?authuser=0" alt="Analice Acessórios" class="header-logo">
+            <p class="subtitle">Escolha seus acessórios e monte seu pedido</p>
+
+            <div class="sheet-selection" id="sheet-selection">
+                <!-- Categorias/planilhas serão inseridas aqui dinamicamente -->
             </div>
         </div>
     </header>
 
     <main class="main">
         <div class="container">
+            <div class="catalog-intro">
+                <div>
+                    <span class="catalog-label">CATÁLOGO</span>
+                    <h1>Encontre seus favoritos</h1>
+                </div>
+                <p>Selecione os produtos que deseja pedir e envie sua lista pelo WhatsApp.</p>
+            </div>
+
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p>Carregando produtos...</p>
             </div>
-            
+
             <div class="products-grid" id="products-grid">
                 <!-- Os produtos serão inseridos aqui dinamicamente -->
             </div>
-            
+
             <div class="error-message" id="error-message" style="display: none;">
                 <i class="fas fa-exclamation-triangle"></i>
                 <p>Erro ao carregar os produtos. Tente novamente mais tarde.</p>
@@ -39,9 +47,58 @@
         </div>
     </main>
 
+    <div class="order-bar" id="order-bar" aria-live="polite">
+        <div class="order-bar-inner">
+            <span class="selection-icon"><i class="fas fa-shopping-bag"></i></span>
+            <div class="selection-summary">
+                
+                <div>
+                    <strong id="selected-count">0 itens no carrinho</strong>
+                    <span id="selection-hint">Adicione produtos para montar seu pedido</span>
+                </div>
+            </div>
+            <div class="order-total-preview">
+                <small>Total</small>
+                <strong id="cart-total">—</strong>
+            </div>
+            <button class="order-button" id="order-button" type="button" disabled>
+                <i class="fas fa-bag-shopping"></i>
+                Ver carrinho
+            </button>
+        </div>
+    </div>
+
+    <div class="cart-modal" id="cart-modal" aria-hidden="true">
+        <div class="cart-modal-content" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
+            <div class="cart-modal-header">
+                <div>
+                    <span class="catalog-label">SEU PEDIDO</span>
+                    <h2 id="cart-modal-title">Carrinho</h2>
+                </div>
+                <button class="cart-modal-close" type="button" aria-label="Fechar carrinho">&times;</button>
+            </div>
+
+            <div class="cart-items" id="cart-items"></div>
+
+            <div class="cart-modal-footer">
+                <div class="cart-modal-total">
+                    <span>Total estimado</span>
+                    <strong id="cart-modal-total">R$ 0,00</strong>
+                </div>
+                <button class="cart-whatsapp-button" id="cart-whatsapp-button" type="button" disabled>
+                    <i class="fab fa-whatsapp"></i>
+                    Enviar pedido pelo WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2025 Catálogo de Celulares. Todos os direitos reservados.</p>
+            <p style="font-size: 0.8em;">Analice Acessórios &copy; 2026. Todos os direitos reservados.</p>
+            <a href="https://luanribeirodsg.com" target="_blank" rel="noopener noreferrer">
+                <p style="font-size: 0.7em;">Desenvolvido por Luan Ribeiro</p>
+            </a>
         </div>
     </footer>
 
@@ -57,12 +114,8 @@
                     <span>Mais Imagens</span>
                     <i class="fas fa-arrow-right"></i>
                 </div>
-                <div id="related-images-carousel" class="related-images-carousel">
-                    <!-- Imagens relacionadas serão carregadas aqui -->
-                </div>
             </div>
         </div>
     </div>
 </body>
 </html>
-
