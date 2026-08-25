@@ -277,11 +277,13 @@ body {
     
     .products-grid {
         grid-template-columns: 1fr;
+        justify-items: center;
         gap: 1.5rem;
     }
-    
+
     .product-card {
-        margin: 0 10px;
+        width: min(100%, 360px);
+        margin: 0 auto;
     }
     
     .specs-overlay {
