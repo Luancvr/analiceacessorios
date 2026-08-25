@@ -143,8 +143,8 @@ function listProducts_() {
   return values.map(row => ({
     ID: cell_(row, map, 'ID'),
     Nome: cell_(row, map, 'Nome'),
-    Imagem: cell_(row, map, 'Imagem'),
-    ImagemID: cell_(row, map, 'ImagemID'),
+Imagem: buildImageUrl_(cell_(row, map, 'ImagemID'), cell_(row, map, 'Imagem')),
+ImagemID: cell_(row, map, 'ImagemID'),
     Descricao: cell_(row, map, 'Descricao'),
     Preco: cell_(row, map, 'Preco'),
     Categoria: cell_(row, map, 'Categoria'),
@@ -267,8 +267,8 @@ function readProductRow_(sheet, map, rowNumber) {
   return {
     ID: cell_(row, map, 'ID'),
     Nome: cell_(row, map, 'Nome'),
-    Imagem: cell_(row, map, 'Imagem'),
-    ImagemID: cell_(row, map, 'ImagemID'),
+Imagem: buildImageUrl_(cell_(row, map, 'ImagemID'), cell_(row, map, 'Imagem')),
+ImagemID: cell_(row, map, 'ImagemID'),
     Descricao: cell_(row, map, 'Descricao'),
     Preco: cell_(row, map, 'Preco'),
     Categoria: cell_(row, map, 'Categoria'),
@@ -310,10 +310,10 @@ function saveImage_(dataUrl, originalName, mimeType) {
   // Catálogo público: arquivo visível por link.
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-  return {
+return {
     id: file.getId(),
-    url: `https://drive.google.com/uc?export=view&id=${file.getId()}`
-  };
+    url: `https://drive.google.com/thumbnail?id=${file.getId()}&sz=w1200`
+};
 }
 
 function getOrCreateImageFolder_() {
@@ -353,4 +353,14 @@ function json_(data) {
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function buildImageUrl_(imageId, fallbackUrl) {
+    const id = String(imageId || '').trim();
+
+    if (id) {
+        return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`;
+    }
+
+    return String(fallbackUrl || '').trim();
 }
