@@ -206,7 +206,7 @@ body {
 }
 
 .product-name {
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: #ffffff;
@@ -1411,7 +1411,7 @@ body::before {
 
 .product-name {
     font-family: 'Forum', Georgia, serif;
-    font-size: 1.52rem;
+    font-size: 2rem;
     font-weight: 800;
     color: var(--brown-dark);
     line-height: 1.05;
@@ -1439,7 +1439,7 @@ body::before {
 .price-main {
     font-family: 'Forum', Georgia, serif;
     color: var(--brown-dark);
-    font-size: 1.55rem;
+    font-size: 2rem;
     font-weight: 600;
 }
 
@@ -1663,7 +1663,7 @@ body::before {
     }
 
     .product-name {
-        font-size: 1.42rem;
+        font-size: 2rem;
     }
 }
 
