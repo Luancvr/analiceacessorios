@@ -83,7 +83,11 @@ async function loadProducts() {
     setMessage('Carregando produtos...', 'info');
 
     const data = await api('list');
-    products = data.products || [];
+
+    products = (data.products || []).map(product => ({
+      ...product,
+      Opcoes: getStoredProductOptions(product)
+    }));
 
     renderProducts();
     renderCategoryOptions();
@@ -117,6 +121,7 @@ function renderProducts() {
             <div>
               <strong>${escapeHtml(product.Nome || 'Sem nome')}</strong>
               <small>${escapeHtml(product.Descricao || '')}</small>
+              ${product.Opcoes ? `<small class="product-options-summary">Opções: ${escapeHtml(product.Opcoes)}</small>` : ''}
             </div>
           </div>
         </td>
@@ -154,7 +159,16 @@ function normalizeOptionsText(value) {
 }
 
 function getStoredProductOptions(product) {
-  return product?.Opcoes || product?.opcoes || product?.Opções || product?.opções || '';
+  if (!product) return '';
+
+  const value =
+    product.Opcoes ??
+    product.opcoes ??
+    product['Opções'] ??
+    product['opções'] ??
+    '';
+
+  return normalizeOptionsText(value);
 }
 
 function toggleVariationFields() {
@@ -199,9 +213,16 @@ function openProductModal(product = null) {
     $('product-description').value = product.Descricao || '';
     $('product-category').value = product.Categoria || '';
 
-    const storedOptions = normalizeOptionsText(getStoredProductOptions(product));
-    if ($('product-options')) $('product-options').value = storedOptions;
-    if ($('product-has-options')) $('product-has-options').checked = storedOptions !== '';
+    const storedOptions = getStoredProductOptions(product);
+
+    if ($('product-options')) {
+      $('product-options').value = storedOptions;
+    }
+
+    if ($('product-has-options')) {
+      $('product-has-options').checked = storedOptions.length > 0;
+    }
+
     toggleVariationFields();
 
     $('product-availability').value = normalize(product.Disponibilidade) === 'fora de estoque'
@@ -374,9 +395,7 @@ async function saveProduct(event) {
     descricao: $('product-description').value.trim(),
     categoria: $('product-category').value.trim(),
     disponibilidade: $('product-availability').value,
-    opcoes: $('product-has-options').checked
-      ? normalizeOptionsText($('product-options').value)
-      : ''
+    opcoes: normalizeOptionsText($('product-options').value)
   };
 
   try {
@@ -389,7 +408,12 @@ async function saveProduct(event) {
       payload.imageMime = 'image/jpeg';
     }
 
-    await api(id ? 'update' : 'create', payload);
+    const response = await api(id ? 'update' : 'create', payload);
+
+    // Garante que a resposta do backend também contenha o valor salvo.
+    if (response?.product) {
+      response.product.Opcoes = getStoredProductOptions(response.product);
+    }
 
     closeProductModal();
     await loadProducts();
