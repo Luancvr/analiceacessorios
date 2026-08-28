@@ -115,6 +115,30 @@
             <datalist id="category-options"></datalist>
           </label>
 
+          <div class="full variation-box">
+            <label class="variation-toggle">
+              <input id="product-has-options" type="checkbox">
+              <span>
+                <strong>Este produto possui opções de acabamento</strong>
+                <small>Ex.: Ouro, Prata</small>
+              </span>
+            </label>
+
+            <div id="variation-fields" class="variation-fields hidden">
+              <label>Opções disponíveis
+                <input
+                  id="product-options"
+                  type="text"
+                  placeholder="Ouro, Prata"
+                  autocomplete="off"
+                >
+              </label>
+              <small class="variation-help">
+                Separe as opções por vírgula. O cliente poderá escolher entre elas no catálogo.
+              </small>
+            </div>
+          </div>
+
           <label>Disponibilidade *
             <select id="product-availability" required>
               <option value="Disponível">Disponível</option>

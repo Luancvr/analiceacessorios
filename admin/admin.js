@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('modal-close').addEventListener('click', closeProductModal);
   $('cancel-button').addEventListener('click', closeProductModal);
   $('delete-product-button').addEventListener('click', deleteCurrentProduct);
+  $('product-has-options').addEventListener('change', toggleVariationFields);
 });
 
 function apiReady() {
@@ -116,6 +117,7 @@ function renderProducts() {
             <div>
               <strong>${escapeHtml(product.Nome || 'Sem nome')}</strong>
               <small>${escapeHtml(product.Descricao || '')}</small>
+              ${product.Opcoes ? `<small class="product-options-summary">Opções: ${escapeHtml(normalizeOptionsText(product.Opcoes))}</small>` : ''}
             </div>
           </div>
         </td>
@@ -142,6 +144,32 @@ function renderCategoryOptions() {
     .join('');
 }
 
+
+function toggleVariationFields() {
+  const enabled = $('product-has-options').checked;
+  const fields = $('variation-fields');
+
+  if (enabled) {
+    fields.classList.remove('hidden');
+  } else {
+    fields.classList.add('hidden');
+    $('product-options').value = '';
+  }
+}
+
+function normalizeOptionsText(value) {
+  return [...new Set(
+    String(value || '')
+      .split(/[|;\n,]/)
+      .map(option => option.trim())
+      .filter(Boolean)
+  )].join(', ');
+}
+
+function getStoredProductOptions(product) {
+  return product.Opcoes || product['Opções'] || '';
+}
+
 function openProductModal(product = null) {
   $('product-form').reset();
   $('product-id').value = '';
@@ -151,6 +179,10 @@ function openProductModal(product = null) {
   pendingImageData = null;
   aiAnalyzing = false;
   setAIStatus('', '');
+
+  $('product-has-options').checked = false;
+  $('product-options').value = '';
+  toggleVariationFields();
 
   const analyzeButton = $('analyze-image-button');
   if (analyzeButton) {
@@ -164,6 +196,12 @@ function openProductModal(product = null) {
     $('product-price').value = formatPrice(product.Preco || '');
     $('product-description').value = product.Descricao || '';
     $('product-category').value = product.Categoria || '';
+
+    const storedOptions = getStoredProductOptions(product);
+    $('product-options').value = normalizeOptionsText(storedOptions);
+    $('product-has-options').checked = normalizeOptionsText(storedOptions) !== '';
+    toggleVariationFields();
+
     $('product-availability').value = normalize(product.Disponibilidade) === 'fora de estoque'
       ? 'Fora de estoque'
       : 'Disponível';
@@ -333,7 +371,10 @@ async function saveProduct(event) {
     preco: $('product-price').value.trim(),
     descricao: $('product-description').value.trim(),
     categoria: $('product-category').value.trim(),
-    disponibilidade: $('product-availability').value
+    disponibilidade: $('product-availability').value,
+    opcoes: $('product-has-options').checked
+      ? normalizeOptionsText($('product-options').value)
+      : ''
   };
 
   try {

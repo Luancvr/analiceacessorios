@@ -503,3 +503,64 @@ td {
     justify-content: center;
   }
 }
+
+
+/* ============================================================
+   VARIAÇÕES / ACABAMENTOS
+   ============================================================ */
+
+.variation-box {
+  border: 1px solid rgba(118,84,71,.13);
+  border-radius: 16px;
+  background: rgba(244,233,225,.72);
+  padding: 13px 14px;
+}
+
+.variation-toggle {
+  display: flex;
+  align-items: flex-start;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.variation-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.variation-toggle span {
+  display: grid;
+  gap: 3px;
+}
+
+.variation-toggle strong {
+  font-size: .82rem;
+}
+
+.variation-toggle small {
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 500;
+}
+
+.variation-fields {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(118,84,71,.10);
+}
+
+.variation-help {
+  color: var(--muted);
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+.product-options-summary {
+  color: var(--accent-2);
+  font-size: .7rem !important;
+}

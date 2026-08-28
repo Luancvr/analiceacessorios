@@ -1741,3 +1741,101 @@ body::before {
 .product-card.unavailable:hover {
     transform: translateY(-4px);
 }
+
+
+/* ============================================================
+   OPÇÕES DE ACABAMENTO — OURO / PRATA
+   ============================================================ */
+
+.purchase-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: .65rem;
+    margin-top: 1rem;
+}
+
+.purchase-controls.has-options {
+    justify-content: space-between;
+}
+
+.variant-selector {
+    display: flex;
+    flex-direction: column;
+    gap: .28rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.variant-selector label {
+    font-size: .68rem;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 600;
+    color: #9a8174;
+}
+
+.variant-select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 .8rem;
+    border: 1px solid rgba(117,84,70,.18);
+    border-radius: 999px;
+    background: rgba(255,255,255,.66);
+    color: #6f5146;
+    font-family: 'Montserrat', sans-serif;
+    font-size: .76rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+
+.variant-select:focus {
+    border-color: rgba(117,84,70,.42);
+    box-shadow: 0 0 0 3px rgba(117,84,70,.07);
+}
+
+.purchase-controls.has-options .cart-controls {
+    width: 148px;
+    flex: 0 0 148px;
+    margin-top: 0;
+}
+
+.cart-item-variant {
+    display: block;
+    margin-top: 2px;
+    color: #977d6e;
+    font-size: .74rem;
+}
+
+.cart-item-variant strong {
+    color: #704f40;
+}
+
+@media (max-width: 480px) {
+    .purchase-controls.has-options {
+        gap: .55rem;
+    }
+
+    .purchase-controls.has-options .cart-controls {
+        width: 136px;
+        flex-basis: 136px;
+    }
+
+    .variant-select {
+        min-height: 42px;
+        padding: 0 .7rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .purchase-controls.has-options {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .purchase-controls.has-options .cart-controls {
+        width: 100%;
+        flex-basis: auto;
+    }
+}
