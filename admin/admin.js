@@ -117,7 +117,6 @@ function renderProducts() {
             <div>
               <strong>${escapeHtml(product.Nome || 'Sem nome')}</strong>
               <small>${escapeHtml(product.Descricao || '')}</small>
-              ${product.Opcoes ? `<small class="product-options-summary">Opções: ${escapeHtml(normalizeOptionsText(product.Opcoes))}</small>` : ''}
             </div>
           </div>
         </td>
@@ -145,29 +144,32 @@ function renderCategoryOptions() {
 }
 
 
-function toggleVariationFields() {
-  const enabled = $('product-has-options').checked;
-  const fields = $('variation-fields');
-
-  if (enabled) {
-    fields.classList.remove('hidden');
-  } else {
-    fields.classList.add('hidden');
-    $('product-options').value = '';
-  }
-}
-
 function normalizeOptionsText(value) {
   return [...new Set(
     String(value || '')
-      .split(/[|;\n,]/)
+      .split(/[|;,\n]/)
       .map(option => option.trim())
       .filter(Boolean)
   )].join(', ');
 }
 
 function getStoredProductOptions(product) {
-  return product.Opcoes || product['Opções'] || '';
+  return product?.Opcoes || product?.opcoes || product?.Opções || product?.opções || '';
+}
+
+function toggleVariationFields() {
+  const checkbox = $('product-has-options');
+  const fields = $('variation-fields');
+  const input = $('product-options');
+
+  if (!checkbox || !fields || !input) return;
+
+  const enabled = checkbox.checked;
+  fields.classList.toggle('hidden', !enabled);
+
+  if (!enabled) {
+    input.value = '';
+  }
 }
 
 function openProductModal(product = null) {
@@ -180,14 +182,14 @@ function openProductModal(product = null) {
   aiAnalyzing = false;
   setAIStatus('', '');
 
-  $('product-has-options').checked = false;
-  $('product-options').value = '';
-  toggleVariationFields();
-
   const analyzeButton = $('analyze-image-button');
   if (analyzeButton) {
     analyzeButton.disabled = true;
   }
+
+  if ($('product-has-options')) $('product-has-options').checked = false;
+  if ($('product-options')) $('product-options').value = '';
+  toggleVariationFields();
 
   if (product) {
     $('modal-title').textContent = 'Editar produto';
@@ -197,9 +199,9 @@ function openProductModal(product = null) {
     $('product-description').value = product.Descricao || '';
     $('product-category').value = product.Categoria || '';
 
-    const storedOptions = getStoredProductOptions(product);
-    $('product-options').value = normalizeOptionsText(storedOptions);
-    $('product-has-options').checked = normalizeOptionsText(storedOptions) !== '';
+    const storedOptions = normalizeOptionsText(getStoredProductOptions(product));
+    if ($('product-options')) $('product-options').value = storedOptions;
+    if ($('product-has-options')) $('product-has-options').checked = storedOptions !== '';
     toggleVariationFields();
 
     $('product-availability').value = normalize(product.Disponibilidade) === 'fora de estoque'
@@ -446,6 +448,10 @@ function toggleForm(disabled) {
 
   if (!disabled && !pendingImageData) {
     $('analyze-image-button').disabled = true;
+  }
+
+  if (!disabled) {
+    toggleVariationFields();
   }
 }
 
