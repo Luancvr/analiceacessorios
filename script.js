@@ -294,8 +294,8 @@ function getProductOptions(product) {
     const raw = getProductValue(
         product,
         'Opcoes',
-        'Opções',
         'opcoes',
+        'Opções',
         'opções',
         'Variacoes',
         'Variações',
@@ -313,25 +313,21 @@ function getProductOptions(product) {
     )];
 }
 
-function getCartItem(productName, option = '') {
+function getSelectedVariant(card) {
+    const select = card.querySelector('.variant-select');
+    return select ? select.value : '';
+}
+
+function findCartItem(productName, variant = '') {
     return selectedProducts.find(item =>
         item.product._name === productName &&
-        String(item.option || '') === String(option || '')
+        String(item.variant || '') === String(variant || '')
     );
 }
 
-function getQuantity(productName, option = '') {
-    const item = getCartItem(productName, option);
+function getVariantQuantity(productName, variant = '') {
+    const item = findCartItem(productName, variant);
     return item ? item.quantity : 0;
-}
-
-function getTotalQuantityForProduct(productName) {
-    return selectedProducts.reduce((total, item) => {
-        if (item.product._name === productName) {
-            return total + item.quantity;
-        }
-        return total;
-    }, 0);
 }
 
 function createProductCard(product, index) {
@@ -392,10 +388,6 @@ function createProductCard(product, index) {
     const availability = getProductAvailability(product);
     const options = getProductOptions(product);
 
-    // ============================================================
-    // IMAGEM
-    // ============================================================
-
     const imageId = getProductValue(
         product,
         'ImagemID',
@@ -418,7 +410,6 @@ function createProductCard(product, index) {
 
     if (image && image.includes('drive.google.com')) {
         const idMatch = image.match(/[?&]id=([^&]+)/);
-
         if (idMatch && idMatch[1]) {
             image = `https://drive.google.com/thumbnail?id=${encodeURIComponent(idMatch[1])}&sz=w1200`;
         }
@@ -443,9 +434,7 @@ function createProductCard(product, index) {
             </svg>
         `);
 
-    if (!image) {
-        image = imageFallback;
-    }
+    if (!image) image = imageFallback;
 
     const productData = {
         ...product,
@@ -461,26 +450,20 @@ function createProductCard(product, index) {
     };
 
     card.dataset.productName = name;
-    card.classList.toggle(
-        'unavailable',
-        !availability.available
-    );
+    card.classList.toggle('unavailable', !availability.available);
 
-    const optionsHtml = options.length > 0
+    const optionsHtml = options.length
         ? `
-            <div class="variant-selector">
-                <label for="variant-${index}">Acabamento</label>
+            <div class="variant-selector-wrap">
+                <label class="variant-label" for="variant-${index}">Acabamento</label>
                 <select
                     id="variant-${index}"
                     class="variant-select"
                     ${availability.available ? '' : 'disabled'}
-                    aria-label="Acabamento de ${escapeHtml(name)}"
+                    aria-label="Escolha o acabamento de ${escapeHtml(name)}"
                 >
                     ${options.map((option, optionIndex) => `
-                        <option
-                            value="${escapeAttribute(option)}"
-                            ${optionIndex === 0 ? 'selected' : ''}
-                        >
+                        <option value="${escapeAttribute(option)}" ${optionIndex === 0 ? 'selected' : ''}>
                             ${escapeHtml(option)}
                         </option>
                     `).join('')}
@@ -505,23 +488,17 @@ function createProductCard(product, index) {
             }
 
             <span class="availability-badge ${
-                availability.available
-                    ? 'is-available'
-                    : 'is-unavailable'
+                availability.available ? 'is-available' : 'is-unavailable'
             }">
                 <i class="fas ${
-                    availability.available
-                        ? 'fa-circle-check'
-                        : 'fa-circle-xmark'
+                    availability.available ? 'fa-circle-check' : 'fa-circle-xmark'
                 }"></i>
                 ${escapeHtml(availability.label)}
             </span>
         </div>
 
         <div class="product-info">
-            <h3 class="product-name">
-                ${escapeHtml(name)}
-            </h3>
+            <h3 class="product-name">${escapeHtml(name)}</h3>
 
             <p class="product-description">
                 ${escapeHtml(description)}
@@ -529,45 +506,35 @@ function createProductCard(product, index) {
 
             ${
                 details
-                    ? `
-                        <div class="product-detail">
-                            <i class="fas fa-sparkles"></i>
-                            <span>${escapeHtml(details)}</span>
-                        </div>
-                    `
+                    ? `<div class="product-detail">
+                        <i class="fas fa-sparkles"></i>
+                        <span>${escapeHtml(details)}</span>
+                    </div>`
                     : ''
             }
 
             <div class="product-price">
                 ${
                     priceRaw
-                        ? `
-                            <div class="price-main">
-                                ${escapeHtml(formatPrice(priceRaw))}
-                            </div>
-                        `
+                        ? `<div class="price-main">${escapeHtml(formatPrice(priceRaw))}</div>`
                         : ''
                 }
 
                 ${
                     installments
-                        ? `
-                            <div class="price-installments">
-                                <i class="fas fa-credit-card"></i>
-                                ${escapeHtml(installments)}
-                            </div>
-                        `
+                        ? `<div class="price-installments">
+                            <i class="fas fa-credit-card"></i>
+                            ${escapeHtml(installments)}
+                        </div>`
                         : ''
                 }
             </div>
 
-            <div class="purchase-controls ${options.length ? 'has-options' : ''}">
+            <div class="purchase-row ${options.length ? 'has-variant' : ''}">
                 ${optionsHtml}
 
                 <div
-                    class="cart-controls ${
-                        availability.available ? '' : 'is-disabled'
-                    }"
+                    class="cart-controls ${availability.available ? '' : 'is-disabled'}"
                     aria-label="Quantidade de ${escapeHtml(name)}"
                 >
                     <button
@@ -575,9 +542,7 @@ function createProductCard(product, index) {
                         type="button"
                         aria-label="Diminuir quantidade"
                         ${availability.available ? '' : 'disabled'}
-                    >
-                        −
-                    </button>
+                    >−</button>
 
                     <span class="qty-value">
                         ${availability.available ? '0' : '—'}
@@ -588,25 +553,14 @@ function createProductCard(product, index) {
                         type="button"
                         aria-label="Aumentar quantidade"
                         ${availability.available ? '' : 'disabled'}
-                    >
-                        +
-                    </button>
+                    >+</button>
                 </div>
             </div>
 
-            <div
-                class="select-product-label ${
-                    availability.available
-                        ? ''
-                        : 'is-unavailable-label'
-                }"
-            >
+            <div class="select-product-label ${availability.available ? '' : 'is-unavailable-label'}">
                 <i class="fas ${
-                    availability.available
-                        ? 'fa-cart-plus'
-                        : 'fa-circle-xmark'
+                    availability.available ? 'fa-cart-plus' : 'fa-circle-xmark'
                 }"></i>
-
                 <span>
                     ${
                         availability.available
@@ -622,114 +576,123 @@ function createProductCard(product, index) {
     const plusButton = card.querySelector('.qty-plus');
     const variantSelect = card.querySelector('.variant-select');
 
-    minusButton.addEventListener('click', (event) => {
+    minusButton.addEventListener('click', event => {
         event.stopPropagation();
-
         changeProductQuantity(
             productData,
             -1,
             card,
-            variantSelect ? variantSelect.value : ''
+            getSelectedVariant(card)
         );
     });
 
-    plusButton.addEventListener('click', (event) => {
+    plusButton.addEventListener('click', event => {
         event.stopPropagation();
-
         changeProductQuantity(
             productData,
             1,
             card,
-            variantSelect ? variantSelect.value : ''
+            getSelectedVariant(card)
         );
     });
 
     if (variantSelect) {
-        variantSelect.addEventListener('click', (event) => {
+        variantSelect.addEventListener('click', event => {
             event.stopPropagation();
         });
 
         variantSelect.addEventListener('change', () => {
-            updateProductCardQuantity(
-                card,
-                productData._name,
-                variantSelect.value
-            );
+            updateProductCardQuantity(card, productData);
         });
     }
 
-    card.addEventListener('click', (event) => {
-        if (
-            event.target.closest('.qty-button') ||
-            event.target.closest('.variant-select')
-        ) {
+    card.addEventListener('click', event => {
+        if (event.target.closest('.qty-button') ||
+            event.target.closest('.variant-select')) {
             return;
         }
 
         if (event.target.closest('.product-image')) {
-            openLightbox(
-                image,
-                name
-            );
+            openLightbox(image, name);
             return;
         }
 
-        if (!availability.available) {
-            return;
-        }
+        if (!availability.available) return;
 
         changeProductQuantity(
             productData,
             1,
             card,
-            variantSelect ? variantSelect.value : ''
+            getSelectedVariant(card)
         );
     });
 
     return card;
 }
 
-function changeProductQuantity(product, delta, card, option = '') {
+function updateProductCardQuantity(card, product) {
+    const variant = getSelectedVariant(card);
+    const quantity = product._options?.length
+        ? getVariantQuantity(product._name, variant)
+        : getVariantQuantity(product._name, '');
+
+    const qtyValue = card.querySelector('.qty-value');
+    const label = card.querySelector('.select-product-label');
+
+    card.classList.toggle('selected', quantity > 0);
+
+    if (qtyValue) {
+        qtyValue.textContent = quantity;
+    }
+
+    if (!label) return;
+
+    const unavailable = card.classList.contains('unavailable');
+
+    if (unavailable) {
+        label.innerHTML =
+            `<i class="fas fa-circle-xmark"></i><span>Produto indisponível</span>`;
+        return;
+    }
+
+    if (quantity > 0) {
+        const variantText = variant ? ` · ${escapeHtml(variant)}` : '';
+
+        label.innerHTML =
+            `<i class="fas fa-check-circle"></i>
+             <span>${quantity} ${quantity === 1 ? 'unidade' : 'unidades'} no carrinho${variantText}</span>`;
+    } else {
+        label.innerHTML =
+            `<i class="fas fa-cart-plus"></i>
+             <span>Adicionar ao carrinho</span>`;
+    }
+}
+
+function changeProductQuantity(product, delta, card, variant = '') {
     if (product._available === false) return;
 
-    const selectedOption = option || '';
-    const existingItem = getCartItem(
-        product._name,
-        selectedOption
-    );
-
-    const currentQuantity = existingItem
-        ? existingItem.quantity
-        : 0;
-
-    const newQuantity = Math.max(
-        0,
-        currentQuantity + delta
-    );
+    const selectedVariant = variant || '';
+    const existingItem = findCartItem(product._name, selectedVariant);
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+    const newQuantity = Math.max(0, currentQuantity + delta);
 
     if (!existingItem && newQuantity > 0) {
         selectedProducts.push({
             product,
             quantity: newQuantity,
-            option: selectedOption
+            variant: selectedVariant
         });
     } else if (existingItem && newQuantity > 0) {
         existingItem.quantity = newQuantity;
     } else if (existingItem && newQuantity === 0) {
         selectedProducts = selectedProducts.filter(item =>
-            !(
-                item.product._name === product._name &&
-                String(item.option || '') === String(selectedOption)
-            )
+            !(item.product._name === product._name &&
+              String(item.variant || '') === String(selectedVariant))
         );
     }
 
     if (card) {
-        updateProductCardQuantity(
-            card,
-            product._name,
-            selectedOption
-        );
+        updateProductCardQuantity(card, product);
     } else {
         updateVisibleCardsForProduct(product._name);
     }
@@ -738,74 +701,38 @@ function changeProductQuantity(product, delta, card, option = '') {
     updateCartModal();
 }
 
-function updateProductCardQuantity(
-    card,
-    productName,
-    option = ''
-) {
-    const quantity = getQuantity(
-        productName,
-        option
-    );
-
-    const totalQuantity = getTotalQuantityForProduct(
-        productName
-    );
-
-    const qtyValue = card.querySelector('.qty-value');
-    const label = card.querySelector('.select-product-label');
-
-    card.classList.toggle(
-        'selected',
-        totalQuantity > 0
-    );
-
-    if (qtyValue) {
-        qtyValue.textContent = quantity;
-    }
-
-    if (label) {
-        const unavailable =
-            card.classList.contains('unavailable');
-
-        label.innerHTML = unavailable
-            ? `
-                <i class="fas fa-circle-xmark"></i>
-                <span>Produto indisponível</span>
-              `
-            : quantity > 0
-                ? `
-                    <i class="fas fa-check-circle"></i>
-                    <span>
-                        ${quantity}
-                        ${quantity === 1 ? 'unidade' : 'unidades'}
-                        no carrinho
-                        ${option ? ` · ${escapeHtml(option)}` : ''}
-                    </span>
-                  `
-                : `
-                    <i class="fas fa-cart-plus"></i>
-                    <span>Adicionar ao carrinho</span>
-                  `;
-    }
-}
-
 function updateVisibleCardsForProduct(productName) {
     document.querySelectorAll('.product-card').forEach(card => {
-        if (card.dataset.productName !== productName) {
-            return;
+        if (card.dataset.productName !== productName) return;
+
+        const currentProduct = allProducts.find(product => {
+            const currentName = getProductValue(
+                product,
+                'Nome',
+                'nome',
+                'Produto',
+                'produto'
+            ) || 'Produto sem nome';
+
+            return currentName === productName;
+        });
+
+        if (currentProduct) {
+            const availability = getProductAvailability(currentProduct);
+            const imageId = getProductValue(currentProduct, 'ImagemID', 'imagemid', 'ImagemId', 'imagemId');
+            const image = imageId
+                ? `https://drive.google.com/thumbnail?id=${encodeURIComponent(imageId)}&sz=w1200`
+                : getProductValue(currentProduct, 'Imagem', 'imagem', 'Foto', 'foto');
+
+            const product = {
+                ...currentProduct,
+                _name: productName,
+                _available: availability.available,
+                _options: getProductOptions(currentProduct)
+            };
+
+            updateProductCardQuantity(card, product);
         }
-
-        const variantSelect = card.querySelector('.variant-select');
-        const option = variantSelect
-            ? variantSelect.value
-            : '';
-
-        updateProductCardQuantity(
-            card,
-            productName,
-            option
-        );
     });
 }
 
@@ -858,38 +785,17 @@ function updateCartUI() {
 
 function createWhatsAppMessage() {
     const lines = selectedProducts.map((item, index) => {
-        const price = item.product._price
-            ? formatPrice(item.product._price)
-            : '';
+        const price = item.product._price ? formatPrice(item.product._price) : '';
+        const subtotal = parsePriceValue(item.product._price) * item.quantity;
+        const subtotalText = subtotal > 0 ? ` = ${formatPrice(subtotal)}` : '';
+        const priceText = price ? ` — ${price} un.` : '';
+        const variantText = item.variant ? ` | Acabamento: ${item.variant}` : '';
 
-        const subtotal =
-            parsePriceValue(item.product._price) *
-            item.quantity;
-
-        const subtotalText =
-            subtotal > 0
-                ? ` = ${formatPrice(subtotal)}`
-                : '';
-
-        const priceText =
-            price
-                ? ` — ${price} un.`
-                : '';
-
-        const optionText =
-            item.option
-                ? ` | Acabamento: ${item.option}`
-                : '';
-
-        return `${index + 1}. ${item.product._name}${optionText} | Qtd: ${item.quantity}${priceText}${subtotalText}`;
+        return `${index + 1}. ${item.product._name}${variantText} | Qtd: ${item.quantity}${priceText}${subtotalText}`;
     });
 
     const total = getCartTotal();
-
-    const totalLine =
-        total > 0
-            ? `\nTotal estimado: ${formatPrice(total)}`
-            : '';
+    const totalLine = total > 0 ? `\nTotal estimado: ${formatPrice(total)}` : '';
 
     return `${WHATSAPP_INTRO}\n\n${lines.join('\n')}${totalLine}\n\nGostaria de confirmar a disponibilidade e finalizar o pedido.`;
 }
@@ -933,55 +839,30 @@ function updateCartModal() {
         list.innerHTML =
             '<div class="empty-cart"><i class="fas fa-bag-shopping"></i><p>Seu carrinho está vazio.</p></div>';
 
-        if (totalElement) {
-            totalElement.textContent = 'R$ 0,00';
-        }
-
-        if (footerButton) {
-            footerButton.disabled = true;
-        }
-
+        if (totalElement) totalElement.textContent = 'R$ 0,00';
+        if (footerButton) footerButton.disabled = true;
         return;
     }
 
     list.innerHTML = selectedProducts.map((item, index) => {
-        const price = parsePriceValue(
-            item.product._price
-        );
-
-        const subtotal =
-            price * item.quantity;
-
-        const optionHtml = item.option
-            ? `
-                <span class="cart-item-variant">
-                    Acabamento:
-                    <strong>${escapeHtml(item.option)}</strong>
-                </span>
-              `
+        const price = parsePriceValue(item.product._price);
+        const subtotal = price * item.quantity;
+        const variantHtml = item.variant
+            ? `<span class="cart-item-variant">Acabamento: <strong>${escapeHtml(item.variant)}</strong></span>`
             : '';
 
         return `
-            <div
-                class="cart-item"
-                data-cart-name="${escapeAttribute(item.product._name)}"
-            >
+            <div class="cart-item" data-cart-name="${escapeAttribute(item.product._name)}">
                 <img
                     src="${escapeAttribute(item.product._image)}"
                     alt="${escapeAttribute(item.product._name)}"
-                    onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3e7de%22/%3E%3Ctext x=%2250%22 y=%2252%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2210%22 fill=%22%239a8174%22%3ESem imagem%3C/text%3E%3C/svg%3E'"
+                    onerror="this.onerror=null; this.style.opacity='.25';"
                 >
 
                 <div class="cart-item-info">
                     <strong>${escapeHtml(item.product._name)}</strong>
-
-                    ${optionHtml}
-
-                    ${
-                        price > 0
-                            ? `<span>${formatPrice(price)} cada</span>`
-                            : ''
-                    }
+                    ${variantHtml}
+                    ${price > 0 ? `<span>${formatPrice(price)} cada</span>` : ''}
 
                     <div class="cart-item-actions">
                         <button
@@ -989,9 +870,7 @@ function updateCartModal() {
                             class="modal-qty-button"
                             data-action="decrease"
                             data-index="${index}"
-                        >
-                            −
-                        </button>
+                        >−</button>
 
                         <b>${item.quantity}</b>
 
@@ -1000,15 +879,9 @@ function updateCartModal() {
                             class="modal-qty-button"
                             data-action="increase"
                             data-index="${index}"
-                        >
-                            +
-                        </button>
+                        >+</button>
 
-                        ${
-                            subtotal > 0
-                                ? `<em>${formatPrice(subtotal)}</em>`
-                                : ''
-                        }
+                        ${subtotal > 0 ? `<em>${formatPrice(subtotal)}</em>` : ''}
                     </div>
                 </div>
 
@@ -1025,8 +898,7 @@ function updateCartModal() {
     }).join('');
 
     if (totalElement) {
-        totalElement.textContent =
-            formatPrice(getCartTotal());
+        totalElement.textContent = formatPrice(getCartTotal());
     }
 
     if (footerButton) {
@@ -1035,48 +907,34 @@ function updateCartModal() {
 }
 
 function handleCartModalClick(event) {
-    const qtyButton =
-        event.target.closest('.modal-qty-button');
-
-    const removeButton =
-        event.target.closest('.remove-cart-item');
+    const qtyButton = event.target.closest('.modal-qty-button');
+    const removeButton = event.target.closest('.remove-cart-item');
 
     if (qtyButton) {
-        const index =
-            Number(qtyButton.dataset.index);
-
-        const item =
-            selectedProducts[index];
+        const index = Number(qtyButton.dataset.index);
+        const item = selectedProducts[index];
 
         if (!item) return;
 
         changeProductQuantity(
             item.product,
-            qtyButton.dataset.action === 'increase'
-                ? 1
-                : -1,
+            qtyButton.dataset.action === 'increase' ? 1 : -1,
             null,
-            item.option || ''
+            item.variant || ''
         );
 
         return;
     }
 
     if (removeButton) {
-        const index =
-            Number(removeButton.dataset.index);
-
-        const item =
-            selectedProducts[index];
+        const index = Number(removeButton.dataset.index);
+        const item = selectedProducts[index];
 
         if (!item) return;
 
         selectedProducts.splice(index, 1);
 
-        updateVisibleCardsForProduct(
-            item.product._name
-        );
-
+        updateVisibleCardsForProduct(item.product._name);
         updateCartUI();
         updateCartModal();
     }

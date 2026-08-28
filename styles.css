@@ -1744,98 +1744,89 @@ body::before {
 
 
 /* ============================================================
-   OPÇÕES DE ACABAMENTO — OURO / PRATA
+   OPÇÕES / ACABAMENTOS
    ============================================================ */
 
-.purchase-controls {
+.purchase-row {
     display: flex;
     align-items: flex-end;
-    gap: .65rem;
+    gap: 10px;
     margin-top: 1rem;
 }
 
-.purchase-controls.has-options {
+.purchase-row.has-variant {
     justify-content: space-between;
 }
 
-.variant-selector {
+.variant-selector-wrap {
     display: flex;
     flex-direction: column;
-    gap: .28rem;
-    flex: 1;
-    min-width: 0;
+    gap: 5px;
+    min-width: 115px;
+    flex: 1 1 auto;
 }
 
-.variant-selector label {
-    font-size: .68rem;
-    line-height: 1;
-    text-transform: uppercase;
+.variant-label {
+    font-size: .66rem;
     letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #8e7568;
     font-weight: 600;
-    color: #9a8174;
 }
 
 .variant-select {
     width: 100%;
-    min-height: 44px;
-    padding: 0 .8rem;
-    border: 1px solid rgba(117,84,70,.18);
+    min-height: 48px;
+    padding: 0 10px;
+    border: 1px solid rgba(117,84,70,.20);
     border-radius: 999px;
-    background: rgba(255,255,255,.66);
-    color: #6f5146;
+    background: rgba(255,255,255,.65);
+    color: #684c3e;
     font-family: 'Montserrat', sans-serif;
     font-size: .76rem;
     font-weight: 600;
     cursor: pointer;
-    outline: none;
 }
 
 .variant-select:focus {
-    border-color: rgba(117,84,70,.42);
-    box-shadow: 0 0 0 3px rgba(117,84,70,.07);
-}
-
-.purchase-controls.has-options .cart-controls {
-    width: 148px;
-    flex: 0 0 148px;
-    margin-top: 0;
+    outline: none;
+    border-color: rgba(117,84,70,.45);
+    box-shadow: 0 0 0 3px rgba(117,84,70,.08);
 }
 
 .cart-item-variant {
     display: block;
-    margin-top: 2px;
-    color: #977d6e;
+    margin-top: 3px;
+    color: #8d7568;
     font-size: .74rem;
 }
 
 .cart-item-variant strong {
-    color: #704f40;
+    color: #6f5146;
 }
 
-@media (max-width: 480px) {
-    .purchase-controls.has-options {
-        gap: .55rem;
+@media (max-width: 600px) {
+    .purchase-row.has-variant {
+        align-items: flex-end;
     }
 
-    .purchase-controls.has-options .cart-controls {
-        width: 136px;
-        flex-basis: 136px;
+    .variant-selector-wrap {
+        min-width: 108px;
     }
 
     .variant-select {
-        min-height: 42px;
-        padding: 0 .7rem;
+        min-height: 45px;
+        font-size: .73rem;
     }
 }
 
 @media (max-width: 380px) {
-    .purchase-controls.has-options {
+    .purchase-row.has-variant {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .purchase-controls.has-options .cart-controls {
+    .purchase-row.has-variant .cart-controls {
         width: 100%;
-        flex-basis: auto;
     }
 }
