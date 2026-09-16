@@ -4,7 +4,7 @@
 // Cole aqui a URL do Google Apps Script Web App.
 // Exemplo:
 // https://script.google.com/macros/s/XXXXXXXXXXXX/exec
-const API_URL = 'COLE_AQUI_A_URL_DO_GOOGLE_APPS_SCRIPT';
+const API_URL = 'https://script.google.com/macros/s/AKfycbygoY0cZ2XTc3eMw3NahYbJw0nZqKMR_dTBUo_h3xSUgOxOc2KGxK0Iwy9fWhNlsNm3/exec';
 
 let adminPassword = '';
 let products = [];
