@@ -330,16 +330,16 @@ async function saveProduct(event) {
 
   const id = $('product-id').value;
   const payload = {
-    id,
-    nome: $('product-name').value.trim(),
-    preco: $('product-price').value.trim(),
-    descricao: $('product-description').value.trim(),
-    categoria: $('product-category').value.trim(),
-    disponibilidade: $('product-availability').value,
-    opcoes: $('product-has-options').checked
-      ? normalizeOptionsText($('product-options').value)
-      : ''
-  };
+  id,
+  nome: $('product-name').value.trim(),
+  preco: $('product-price').value.trim(),
+  descricao: $('product-description').value.trim(),
+  categoria: $('product-category').value.trim(),
+  disponibilidade: $('product-availability').value,
+  opcoes: $('product-has-options').checked
+    ? $('product-options').value.trim()
+    : ''
+};
 
   try {
     toggleForm(true);
