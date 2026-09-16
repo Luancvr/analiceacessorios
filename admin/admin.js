@@ -4,7 +4,7 @@
 // Cole aqui a URL do Google Apps Script Web App.
 // Exemplo:
 // https://script.google.com/macros/s/XXXXXXXXXXXX/exec
-const API_URL = 'https://script.google.com/macros/s/AKfycbygoY0cZ2XTc3eMw3NahYbJw0nZqKMR_dTBUo_h3xSUgOxOc2KGxK0Iwy9fWhNlsNm3/exec';
+const API_URL = 'COLE_AQUI_A_URL_DO_GOOGLE_APPS_SCRIPT';
 
 let adminPassword = '';
 let products = [];
@@ -24,20 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
   $('modal-close').addEventListener('click', closeProductModal);
   $('cancel-button').addEventListener('click', closeProductModal);
   $('delete-product-button').addEventListener('click', deleteCurrentProduct);
-  $('product-has-options').addEventListener('change', toggleVariationFields);
+  $('product-has-options').addEventListener('change', toggleOptionsField);
 });
 
 function apiReady() {
-    if (
-        API_URL &&
-        API_URL.startsWith('https://script.google.com/macros/s/') &&
-        API_URL.endsWith('/exec')
-    ) {
-        return true;
-    }
-
-    setLoginMessage('Configure corretamente a URL do Google Apps Script no arquivo admin/admin.js.');
-    return false;
+  if (API_URL && !API_URL.includes('COLE_AQUI')) return true;
+  setLoginMessage('Configure a URL do Google Apps Script no arquivo admin/admin.js.');
+  return false;
 }
 
 async function api(action, payload = {}) {
@@ -83,11 +76,7 @@ async function loadProducts() {
     setMessage('Carregando produtos...', 'info');
 
     const data = await api('list');
-
-    products = (data.products || []).map(product => ({
-      ...product,
-      Opcoes: getStoredProductOptions(product)
-    }));
+    products = data.products || [];
 
     renderProducts();
     renderCategoryOptions();
@@ -121,7 +110,6 @@ function renderProducts() {
             <div>
               <strong>${escapeHtml(product.Nome || 'Sem nome')}</strong>
               <small>${escapeHtml(product.Descricao || '')}</small>
-              ${product.Opcoes ? `<small class="product-options-summary">Opções: ${escapeHtml(product.Opcoes)}</small>` : ''}
             </div>
           </div>
         </td>
@@ -148,44 +136,6 @@ function renderCategoryOptions() {
     .join('');
 }
 
-
-function normalizeOptionsText(value) {
-  return [...new Set(
-    String(value || '')
-      .split(/[|;,\n]/)
-      .map(option => option.trim())
-      .filter(Boolean)
-  )].join(', ');
-}
-
-function getStoredProductOptions(product) {
-  if (!product) return '';
-
-  const value =
-    product.Opcoes ??
-    product.opcoes ??
-    product['Opções'] ??
-    product['opções'] ??
-    '';
-
-  return normalizeOptionsText(value);
-}
-
-function toggleVariationFields() {
-  const checkbox = $('product-has-options');
-  const fields = $('variation-fields');
-  const input = $('product-options');
-
-  if (!checkbox || !fields || !input) return;
-
-  const enabled = checkbox.checked;
-  fields.classList.toggle('hidden', !enabled);
-
-  if (!enabled) {
-    input.value = '';
-  }
-}
-
 function openProductModal(product = null) {
   $('product-form').reset();
   $('product-id').value = '';
@@ -194,16 +144,15 @@ function openProductModal(product = null) {
   pendingImageFile = null;
   pendingImageData = null;
   aiAnalyzing = false;
+  $('product-has-options').checked = false;
+  $('product-options').value = '';
+  toggleOptionsField();
   setAIStatus('', '');
 
   const analyzeButton = $('analyze-image-button');
   if (analyzeButton) {
     analyzeButton.disabled = true;
   }
-
-  if ($('product-has-options')) $('product-has-options').checked = false;
-  if ($('product-options')) $('product-options').value = '';
-  toggleVariationFields();
 
   if (product) {
     $('modal-title').textContent = 'Editar produto';
@@ -212,22 +161,14 @@ function openProductModal(product = null) {
     $('product-price').value = formatPrice(product.Preco || '');
     $('product-description').value = product.Descricao || '';
     $('product-category').value = product.Categoria || '';
-
-    const storedOptions = getStoredProductOptions(product);
-
-    if ($('product-options')) {
-      $('product-options').value = storedOptions;
-    }
-
-    if ($('product-has-options')) {
-      $('product-has-options').checked = storedOptions.length > 0;
-    }
-
-    toggleVariationFields();
-
     $('product-availability').value = normalize(product.Disponibilidade) === 'fora de estoque'
       ? 'Fora de estoque'
       : 'Disponível';
+
+    const savedOptions = normalizeOptionsText(product.Opcoes || '');
+    $('product-has-options').checked = Boolean(savedOptions);
+    $('product-options').value = savedOptions;
+    toggleOptionsField();
 
     if (product.Imagem) {
       $('photo-preview').innerHTML = `<img src="${escapeAttr(product.Imagem)}" alt="">`;
@@ -395,7 +336,9 @@ async function saveProduct(event) {
     descricao: $('product-description').value.trim(),
     categoria: $('product-category').value.trim(),
     disponibilidade: $('product-availability').value,
-    opcoes: normalizeOptionsText($('product-options').value)
+    opcoes: $('product-has-options').checked
+      ? normalizeOptionsText($('product-options').value)
+      : ''
   };
 
   try {
@@ -408,12 +351,7 @@ async function saveProduct(event) {
       payload.imageMime = 'image/jpeg';
     }
 
-    const response = await api(id ? 'update' : 'create', payload);
-
-    // Garante que a resposta do backend também contenha o valor salvo.
-    if (response?.product) {
-      response.product.Opcoes = getStoredProductOptions(response.product);
-    }
+    await api(id ? 'update' : 'create', payload);
 
     closeProductModal();
     await loadProducts();
@@ -473,10 +411,27 @@ function toggleForm(disabled) {
   if (!disabled && !pendingImageData) {
     $('analyze-image-button').disabled = true;
   }
+}
 
-  if (!disabled) {
-    toggleVariationFields();
-  }
+function normalizeOptionsText(value) {
+  return String(value || '')
+    .split(/[,;|\n]+/)
+    .map(item => item.trim())
+    .filter(Boolean)
+    .filter((item, index, array) => array.findIndex(other => normalize(other) === normalize(item)) === index)
+    .join(', ');
+}
+
+function toggleOptionsField() {
+  const checkbox = $('product-has-options');
+  const field = $('product-options-field');
+  const input = $('product-options');
+  if (!checkbox || !field || !input) return;
+
+  field.classList.toggle('hidden', !checkbox.checked);
+  input.disabled = !checkbox.checked;
+
+  if (!checkbox.checked) input.value = '';
 }
 
 function setMessage(text, type = '') {
