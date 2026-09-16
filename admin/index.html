@@ -110,52 +110,41 @@
             <textarea id="product-description" rows="3"></textarea>
           </label>
 
-<label>Categoria *
-  <input id="product-category" list="category-options" type="text" placeholder="Ex.: Colares" required>
-  <datalist id="category-options"></datalist>
-</label>
+          <label>Categoria *
+            <input id="product-category" list="category-options" type="text" placeholder="Ex.: Colares" required>
+            <datalist id="category-options"></datalist>
+          </label>
 
-<div class="product-options-section">
-  <label class="options-checkbox">
-    <input id="product-has-options" type="checkbox">
-    <span>
-      <strong>Este produto possui opções de acabamento</strong>
-      <small>Ex.: Ouro, Prata</small>
-    </span>
-  </label>
+          <div class="full variation-box">
+            <label class="variation-toggle">
+              <input id="product-has-options" type="checkbox">
+              <span>
+                <strong>Este produto possui opções de acabamento</strong>
+                <small>Ex.: Ouro, Prata</small>
+              </span>
+            </label>
 
-  <div id="variation-fields" class="variation-fields hidden">
-    <label>
-      Opções disponíveis
-      <input
-        id="product-options"
-        type="text"
-        placeholder="Ex.: Ouro, Prata"
-        autocomplete="off"
-      >
-      <small>Separe as opções por vírgula.</small>
-    </label>
-  </div>
-</div>
+            <div id="variation-fields" class="variation-fields hidden">
+              <label>Opções disponíveis
+                <input
+                  id="product-options"
+                  type="text"
+                  placeholder="Ouro, Prata"
+                  autocomplete="off"
+                >
+              </label>
+              <small class="variation-help">
+                Separe as opções por vírgula. O cliente poderá escolher entre elas no catálogo.
+              </small>
+            </div>
+          </div>
+
           <label>Disponibilidade *
             <select id="product-availability" required>
               <option value="Disponível">Disponível</option>
               <option value="Fora de estoque">Fora de estoque</option>
             </select>
           </label>
-
-          <div class="options-field full" id="product-options-field">
-            <label class="options-toggle">
-              <input id="product-has-options" type="checkbox">
-              <span>Este produto possui opções de acabamento</span>
-            </label>
-            <div id="product-options-input-wrap" class="options-input-wrap">
-              <label>Opções disponíveis
-                <input id="product-options" type="text" placeholder="Ex.: Ouro, Prata" disabled>
-              </label>
-              <small>Separe as opções por vírgula.</small>
-            </div>
-          </div>
         </div>
 
         <div class="modal-footer">

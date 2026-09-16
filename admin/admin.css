@@ -506,43 +506,61 @@ td {
 
 
 /* ============================================================
-   OPÇÕES DE ACABAMENTO — OURO / PRATA
+   VARIAÇÕES / ACABAMENTOS
    ============================================================ */
-.options-field {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--border);
+
+.variation-box {
+  border: 1px solid rgba(118,84,71,.13);
   border-radius: 16px;
-  background: rgba(244,233,225,.7);
+  background: rgba(244,233,225,.72);
+  padding: 13px 14px;
 }
 
-.options-toggle {
+.variation-toggle {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  grid-template-columns: auto 1fr;
   gap: 10px;
   cursor: pointer;
 }
 
-.options-toggle input {
+.variation-toggle input {
   width: 18px;
   height: 18px;
-  margin: 0;
+  margin: 2px 0 0;
   accent-color: var(--accent);
 }
 
-.options-toggle span {
-  font-size: .82rem;
-  font-weight: 700;
-}
-
-.options-input-wrap {
+.variation-toggle span {
   display: grid;
-  gap: 6px;
-  padding-left: 28px;
+  gap: 3px;
 }
 
-.options-input-wrap small {
+.variation-toggle strong {
+  font-size: .82rem;
+}
+
+.variation-toggle small {
   color: var(--muted);
   font-size: .72rem;
+  font-weight: 500;
+}
+
+.variation-fields {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(118,84,71,.10);
+}
+
+.variation-help {
+  color: var(--muted);
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+.product-options-summary {
+  color: var(--accent-2);
+  font-size: .7rem !important;
 }
